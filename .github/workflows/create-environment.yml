@@ -1,0 +1,20 @@
+name: Create Environment
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        type: string
+        required: true
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    environment:
+      name: pr${{ github.event.number }}
+      url: ${{ steps.generate_url.outputs.url }}
+    steps:
+      - name: Generate environment URL
+        id: generate_url
+        run: |
+          echo "::set-output name=url::https://$(echo -n '${{ inputs.app_name }}-pr${{ github.event.number }}' | sha1sum | head -c 40).staging.fohr.co"

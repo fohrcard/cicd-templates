@@ -1,0 +1,65 @@
+name: Build Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      dockerfile_path:
+        type: string
+        required: true
+        default: ./Dockerfile
+      image_tag:
+        type: string
+        required: true
+      container_registry_url:
+        type: string
+        required: false
+        default: 904705273474.dkr.ecr.us-east-1.amazonaws.com
+      container_repository_path:
+        type: string
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency: ${{ github.ref_name }}
+    steps:
+      - name: Clone current repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Restore cached layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ inputs.image_tag }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ inputs.environment == 'production' && secrets.PRODUCTION_AWS_ACCESS_KEY_ID || secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ inputs.environment == 'production' && secrets.PRODUCTION_AWS_SECRET_ACCESS_KEY || secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          file: ${{ inputs.dockerfile_path }}
+          tags: ${{ inputs.container_registry_url }}/${{ inputs.container_repository_path }}:${{ inputs.image_tag }},${{ inputs.container_registry_url }}/${{ inputs.container_repository_path }}:latest
+          push: true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Save layers cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
