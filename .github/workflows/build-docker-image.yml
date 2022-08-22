@@ -10,6 +10,9 @@ on:
         type: string
         required: true
         default: ./Dockerfile
+      build_args:
+        type: string
+        required: false
       image_tag:
         type: string
         required: true
@@ -54,6 +57,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           file: ${{ inputs.dockerfile_path }}
+          build-args: ${{ inputs.build_args }}
           tags: ${{ inputs.container_registry_url }}/${{ inputs.container_repository_path }}:${{ inputs.image_tag }},${{ inputs.container_registry_url }}/${{ inputs.container_repository_path }}:latest
           push: true
           cache-from: type=local,src=/tmp/.buildx-cache
