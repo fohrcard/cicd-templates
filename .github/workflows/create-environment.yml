@@ -17,4 +17,4 @@ jobs:
       - name: Generate environment URL
         id: generate_url
         run: |
-          echo "::set-output name=url::https://$(echo -n '${{ inputs.app_name }}-pr${{ github.event.number }}' | sha1sum | head -c 40).staging.fohr.co"
+          echo "::set-output name=url::https://$(echo -n '${{ inputs.app_name }}-pr${{ github.event.number }}').staging.fohr.co"
