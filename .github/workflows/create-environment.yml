@@ -6,12 +6,16 @@ on:
       app_name:
         type: string
         required: true
+      environment_name:
+        type: string
+        required: false
+        default: staging
 
 jobs:
   create:
     runs-on: ubuntu-latest
     environment:
-      name: pr${{ github.event.number }}
+      name: ${{ inputs.environment_name }}
       url: ${{ steps.generate_url.outputs.url }}
     steps:
       - name: Generate environment URL
