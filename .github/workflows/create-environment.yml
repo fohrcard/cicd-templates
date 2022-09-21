@@ -10,6 +10,10 @@ on:
         type: string
         required: false
         default: staging
+      argocd_url:
+        type: string
+        required: false
+        default: https://argocd.staging.fohr.co
 
 jobs:
   create:
@@ -18,6 +22,15 @@ jobs:
       name: ${{ inputs.environment_name }}
       url: ${{ steps.generate_url.outputs.url }}
     steps:
+      - name: Sync app
+        run: |
+          curl -X POST ${{ inputs.argocd_url }}/api/v1/applications/${{ inputs.app_name }}-pr${{ github.event.number }}/sync \
+            -H "Authorization: Bearer ${{ secrets.STAGING_ARGOCD_TOKEN }}" \
+            -H "CF-Access-Client-Id: ${{ secrets.CF_ACCESS_ID }}" \
+            -H "CF-Access-Client-Secret: ${{ secrets.CF_ACCESS_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"strategy":{"hook":{"force":true}},"syncOptions":{"items":["Replace=true"]}}' || true
+
       - name: Generate environment URL
         id: generate_url
         run: |
