@@ -12,6 +12,14 @@ on:
       app_version:
         type: string
         required: true
+      author_name:
+        type: string
+        required: false
+        default: Deploy Job
+      author_email:
+        type: string
+        required: false
+        default: deploy@fohr.co
 
 jobs:
   deploy:
@@ -26,8 +34,8 @@ jobs:
 
       - name: Update app version
         run: |
-          git config --global user.name "Deploy Job"
-          git config --global user.email "deploy@fohr.co"
+          git config --global user.name "${{ inputs.author_name }}"
+          git config --global user.email "${{ inputs.author_email }}"
           echo "appVersion: ${{ inputs.app_version }}" > apps/${{ inputs.app_name }}/version/${{ inputs.environment }}-version.yaml
           git add apps/${{ inputs.app_name }}/version/${{ inputs.environment }}-version.yaml
           git commit -m "deploy ${{ inputs.environment }} ${{ inputs.app_name }} version ${{ inputs.app_version }}"
