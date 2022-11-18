@@ -57,8 +57,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ inputs.image_tag }}
+          key: docker-build
           restore-keys: |
+            docker-build
             ${{ runner.os }}-buildx-
 
       - name: Build and push Docker image
