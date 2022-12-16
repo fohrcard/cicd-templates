@@ -24,6 +24,10 @@ on:
         type: string
         required: false
         default: us-east-1
+      buildkit_enabled:
+        type: boolean
+        required: false
+        default: false
     secrets:
       aws_access_key_id:
         required: true
@@ -70,6 +74,8 @@ jobs:
           push: true
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        env:
+          DOCKER_BUILDKIT: ${{ inputs.buildkit_enabled && '1' || '0' }}
 
       - name: Save layers cache
         run: |
